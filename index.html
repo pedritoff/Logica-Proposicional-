@@ -52,13 +52,13 @@ input.tabla {
 
 <h1>🧠 Motor Lógico Pro</h1>
 
+<h3>Analizar fórmula</h3>
 <input id="formula" placeholder="Ej: (p ∧ q) → r">
 <br>
 <button onclick="analizar()">Analizar</button>
 
 <!-- TECLADO -->
 <div id="teclado">
-
 <h3>Teclado lógico</h3>
 
 <div>
@@ -78,8 +78,8 @@ input.tabla {
 </div>
 
 <div>
-<button onclick="agregar('|')">| (NAND)</button>
-<button onclick="agregar('↓')">↓ (NOR)</button>
+<button onclick="agregar('|')">| NAND</button>
+<button onclick="agregar('↓')">↓ NOR</button>
 </div>
 
 <div>
@@ -88,20 +88,29 @@ input.tabla {
 <button onclick="borrar()">⌫</button>
 <button onclick="limpiar()">C</button>
 </div>
-
 </div>
+
+<!-- GENERADOR -->
+<h3>Generar desde tipo</h3>
+<select id="tipo">
+    <option>Tautología</option>
+    <option>Contradicción</option>
+    <option>Contingencia</option>
+</select>
+
+<input id="vars" type="number" placeholder="Cantidad variables">
+<br>
+<button onclick="generar()">Generar</button>
 
 <h2 id="resultado"></h2>
 <div id="tabla"></div>
 
 <script>
 
-// =====================
 // TECLADO
-// =====================
-function agregar(simbolo) {
+function agregar(s) {
     let input = document.getElementById("formula");
-    input.value += simbolo;
+    input.value += s;
 }
 
 function borrar() {
@@ -113,21 +122,14 @@ function limpiar() {
     document.getElementById("formula").value = "";
 }
 
-// =====================
 // EVALUADOR
-// =====================
 function evaluar(expr, valores) {
     let e = expr;
 
-    // reemplazos básicos
     e = e.replace(/¬/g, "!");
     e = e.replace(/∧/g, "&&");
     e = e.replace(/∨/g, "||");
-
-    // implicación
     e = e.replace(/→/g, "<=");
-
-    // bicondicional
     e = e.replace(/↔/g, "==");
 
     // NAND
@@ -147,9 +149,7 @@ function evaluar(expr, valores) {
     }
 }
 
-// =====================
 // VARIABLES
-// =====================
 function getVars(expr) {
     let set = new Set();
     for (let c of expr) {
@@ -158,13 +158,10 @@ function getVars(expr) {
     return Array.from(set).sort();
 }
 
-// =====================
 // TABLA
-// =====================
 function tablaVerdad(expr) {
     let vars = getVars(expr);
     let filas = [];
-
     let total = Math.pow(2, vars.length);
 
     for (let i = 0; i < total; i++) {
@@ -185,9 +182,7 @@ function tablaVerdad(expr) {
     return {vars, filas};
 }
 
-// =====================
 // CLASIFICAR
-// =====================
 function clasificar(filas) {
     let resultados = filas.map(f => f[f.length - 1]);
 
@@ -196,9 +191,7 @@ function clasificar(filas) {
     return "Contingencia";
 }
 
-// =====================
-// MOSTRAR TABLA
-// =====================
+// MOSTRAR TABLA (EDITABLE)
 function mostrarTabla(vars, filas) {
     let html = "<table><tr>";
 
@@ -208,29 +201,81 @@ function mostrarTabla(vars, filas) {
     filas.forEach((f, i) => {
         html += "<tr>";
         f.forEach((v, j) => {
-            html += `<td>${v}</td>`;
+            if (j === f.length - 1) {
+                html += `<td><input class="tabla" value="${v}" onchange="editar(${i}, this.value)"></td>`;
+            } else {
+                html += `<td>${v}</td>`;
+            }
         });
         html += "</tr>";
     });
 
     html += "</table>";
     document.getElementById("tabla").innerHTML = html;
+
+    window.estado = {vars, filas};
 }
 
-// =====================
+// EDITAR RESULTADO
+function editar(i, valor) {
+    valor = parseInt(valor);
+    if (valor !== 0 && valor !== 1) return;
+
+    window.estado.filas[i][window.estado.vars.length] = valor;
+
+    let tipo = clasificar(window.estado.filas);
+    document.getElementById("resultado").innerText =
+        "Tipo actualizado: " + tipo;
+}
+
 // ANALIZAR
-// =====================
 function analizar() {
     let expr = document.getElementById("formula").value;
 
     let {vars, filas} = tablaVerdad(expr);
-
     mostrarTabla(vars, filas);
 
     let tipo = clasificar(filas);
 
     document.getElementById("resultado").innerText =
         "Tipo: " + tipo;
+}
+
+// GENERAR TABLA DESDE TIPO
+function generar() {
+    let tipo = document.getElementById("tipo").value;
+    let n = parseInt(document.getElementById("vars").value);
+
+    let vars = [];
+    for (let i = 0; i < n; i++) {
+        vars.push(String.fromCharCode(112 + i)); // p,q,r...
+    }
+
+    let filas = [];
+    let total = Math.pow(2, n);
+
+    for (let i = 0; i < total; i++) {
+        let fila = [];
+
+        for (let j = 0; j < n; j++) {
+            let val = (i >> (n - j - 1)) & 1;
+            fila.push(val);
+        }
+
+        let r;
+
+        if (tipo === "Tautología") r = 1;
+        else if (tipo === "Contradicción") r = 0;
+        else r = (i % 2); // mezcla automática
+
+        fila.push(r);
+        filas.push(fila);
+    }
+
+    mostrarTabla(vars, filas);
+
+    document.getElementById("resultado").innerText =
+        "Tabla generada: " + tipo;
 }
 
 </script>
