@@ -31,6 +31,25 @@ input.tabla {
     width: 40px;
     text-align: center;
 }
+
+/* 🔥 TECLADO */
+#teclado {
+    margin-top: 20px;
+}
+
+#teclado button {
+    padding: 10px;
+    margin: 3px;
+    font-size: 16px;
+    background: #1e293b;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#teclado button:hover {
+    background: #334155;
+}
 </style>
 </head>
 
@@ -42,6 +61,36 @@ input.tabla {
 <input id="formula" placeholder="Ej: (p ∧ q) → r">
 <br>
 <button onclick="analizar()">Analizar</button>
+
+<!-- 🔥 TECLADO LÓGICO -->
+<div id="teclado">
+
+<h3>Teclado lógico</h3>
+
+<div>
+<button onclick="agregar('p')">p</button>
+<button onclick="agregar('q')">q</button>
+<button onclick="agregar('r')">r</button>
+<button onclick="agregar('s')">s</button>
+<button onclick="agregar('t')">t</button>
+</div>
+
+<div>
+<button onclick="agregar('¬')">¬</button>
+<button onclick="agregar('∧')">∧</button>
+<button onclick="agregar('∨')">∨</button>
+<button onclick="agregar('→')">→</button>
+<button onclick="agregar('↔')">↔</button>
+</div>
+
+<div>
+<button onclick="agregar('(')">(</button>
+<button onclick="agregar(')')">)</button>
+<button onclick="borrar()">⌫</button>
+<button onclick="limpiar()">C</button>
+</div>
+
+</div>
 
 <h3>Generar desde tipo</h3>
 <select id="tipo">
@@ -59,6 +108,25 @@ input.tabla {
 <div id="tabla"></div>
 
 <script>
+
+// =====================
+// TECLADO 🔥
+// =====================
+function agregar(simbolo) {
+    let input = document.getElementById("formula");
+    input.value += simbolo;
+    input.focus();
+}
+
+function borrar() {
+    let input = document.getElementById("formula");
+    input.value = input.value.slice(0, -1);
+    input.focus();
+}
+
+function limpiar() {
+    document.getElementById("formula").value = "";
+}
 
 // =====================
 // EVALUADOR
@@ -133,7 +201,7 @@ function clasificar(filas) {
 }
 
 // =====================
-// MOSTRAR TABLA EDITABLE 🔥
+// MOSTRAR TABLA EDITABLE
 // =====================
 function mostrarTabla(vars, filas) {
     let html = "<table><tr>";
@@ -160,7 +228,7 @@ function mostrarTabla(vars, filas) {
 }
 
 // =====================
-// EDITAR RESULTADO 🔥
+// EDITAR RESULTADO
 // =====================
 function editar(i, valor) {
     valor = parseInt(valor);
@@ -190,7 +258,7 @@ function analizar() {
 }
 
 // =====================
-// FND 🔥
+// FND
 // =====================
 function generarFND(vars, filas) {
     let partes = [];
@@ -210,7 +278,7 @@ function generarFND(vars, filas) {
 }
 
 // =====================
-// GENERAR DESDE TIPO 🔥
+// GENERAR
 // =====================
 function generar() {
     let tipo = document.getElementById("tipo").value;
