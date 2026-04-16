@@ -2,299 +2,328 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Motor Lógico Pro</title>
+<title>LogicPro</title>
 
 <style>
 body {
+    margin: 0;
     font-family: Arial;
-    background: #0f172a;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
     color: white;
-    text-align: center;
 }
 
-input, select, button {
+h1 {
+    text-align: center;
+    margin: 20px;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+.panel {
+    flex: 1;
+    background: #111827;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+input, button, select {
     padding: 10px;
     margin: 5px;
+    border-radius: 8px;
+    border: none;
 }
 
+button {
+    cursor: pointer;
+    background: #2563eb;
+    color: white;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+#teclado button {
+    background: #334155;
+}
+
+#teclado button:hover {
+    background: #475569;
+}
+
+/* RESULTADO */
+.badge {
+    font-size: 24px;
+    padding: 10px;
+    border-radius: 10px;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.tauto { background: #14532d; }
+.contra { background: #7f1d1d; }
+.contin { background: #854d0e; }
+
+/* TABLA */
 table {
-    margin: auto;
     border-collapse: collapse;
+    width: 100%;
+    margin-top: 10px;
 }
 
 td, th {
     border: 1px solid #555;
-    padding: 8px;
-}
-
-input.tabla {
-    width: 40px;
+    padding: 6px;
     text-align: center;
 }
 
-#teclado button {
-    padding: 10px;
-    margin: 3px;
-    font-size: 16px;
-    background: #1e293b;
-    color: white;
-    border: none;
-    cursor: pointer;
+tr:hover {
+    background: #1f2937;
 }
 
-#teclado button:hover {
-    background: #334155;
+.true { background: #14532d; }
+.false { background: #7f1d1d; }
+
+/* FEEDBACK */
+#feedback {
+    font-size: 18px;
+    margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🧠 Motor Lógico Pro</h1>
+<h1>🧠 LogicPro</h1>
+
+<div class="container">
+
+<!-- IZQUIERDA -->
+<div class="panel">
 
 <h3>Analizar fórmula</h3>
 <input id="formula" placeholder="Ej: (p ∧ q) → r">
-<br>
 <button onclick="analizar()">Analizar</button>
 
-<!-- TECLADO -->
 <div id="teclado">
-<h3>Teclado lógico</h3>
-
-<div>
-<button onclick="agregar('p')">p</button>
-<button onclick="agregar('q')">q</button>
-<button onclick="agregar('r')">r</button>
-<button onclick="agregar('s')">s</button>
-<button onclick="agregar('t')">t</button>
+<button onclick="add('p')">p</button>
+<button onclick="add('q')">q</button>
+<button onclick="add('r')">r</button>
+<button onclick="add('¬')">¬</button>
+<button onclick="add('∧')">∧</button>
+<button onclick="add('∨')">∨</button>
+<button onclick="add('→')">→</button>
+<button onclick="add('|')">|</button>
+<button onclick="add('↓')">↓</button>
+<button onclick="add('(')">(</button>
+<button onclick="add(')')">)</button>
+<button onclick="clearF()">C</button>
 </div>
 
-<div>
-<button onclick="agregar('¬')">¬</button>
-<button onclick="agregar('∧')">∧</button>
-<button onclick="agregar('∨')">∨</button>
-<button onclick="agregar('→')">→</button>
-<button onclick="agregar('↔')">↔</button>
-</div>
+<hr>
 
-<div>
-<button onclick="agregar('|')">| NAND</button>
-<button onclick="agregar('↓')">↓ NOR</button>
-</div>
+<h3>Modo entrenamiento</h3>
+<p id="ejercicio"></p>
 
-<div>
-<button onclick="agregar('(')">(</button>
-<button onclick="agregar(')')">)</button>
-<button onclick="borrar()">⌫</button>
-<button onclick="limpiar()">C</button>
-</div>
-</div>
-
-<h3>Generar desde tipo</h3>
-<select id="tipo">
-    <option>Tautología</option>
-    <option>Contradicción</option>
-    <option>Contingencia</option>
+<select id="respuesta">
+<option value="">Elegí</option>
+<option>Tautología</option>
+<option>Contradicción</option>
+<option>Contingencia</option>
 </select>
 
-<input id="vars" type="number" placeholder="Cantidad variables">
-<br>
-<button onclick="generar()">Generar</button>
+<button onclick="verificar()">Responder</button>
 
-<h2 id="resultado"></h2>
-<h3 id="fnd"></h3>
-<h3 id="fnc"></h3>
+<p id="feedback"></p>
+<p>Puntos: <span id="puntos">0</span></p>
+
+<button onclick="nuevoEjercicio()">Nuevo ejercicio</button>
+
+</div>
+
+<!-- DERECHA -->
+<div class="panel">
+
+<h3>Resultado</h3>
+<div id="badge"></div>
+
+<h4 id="fnd"></h4>
+<h4 id="fnc"></h4>
 
 <div id="tabla"></div>
+
+</div>
+
+</div>
 
 <script>
 
 // =====================
 // TECLADO
 // =====================
-function agregar(s) {
-    document.getElementById("formula").value += s;
-}
-function borrar() {
-    let i = document.getElementById("formula");
-    i.value = i.value.slice(0,-1);
-}
-function limpiar() {
-    document.getElementById("formula").value = "";
-}
+function add(s){formula.value+=s;}
+function clearF(){formula.value="";}
 
 // =====================
 // EVALUADOR
 // =====================
-function evaluar(expr, valores) {
-    let e = expr;
+function evalExpr(expr,val){
+let e=expr;
+e=e.replace(/¬/g,"!");
+e=e.replace(/∧/g,"&&");
+e=e.replace(/∨/g,"||");
+e=e.replace(/→/g,"<=");
+e=e.replace(/↔/g,"==");
+e=e.replace(/([a-z0-1]+)\|([a-z0-1]+)/g,"(!($1&&$2))");
+e=e.replace(/([a-z0-1]+)↓([a-z0-1]+)/g,"(!($1||$2))");
 
-    e = e.replace(/¬/g, "!");
-    e = e.replace(/∧/g, "&&");
-    e = e.replace(/∨/g, "||");
-    e = e.replace(/→/g, "<=");
-    e = e.replace(/↔/g, "==");
+for(let v in val) e=e.replaceAll(v,val[v]);
 
-    e = e.replace(/([a-z0-1]+)\|([a-z0-1]+)/gi, "(!($1&&$2))");
-    e = e.replace(/([a-z0-1]+)↓([a-z0-1]+)/gi, "(!($1||$2))");
-
-    for (let v in valores) {
-        e = e.replaceAll(v, valores[v]);
-    }
-
-    try { return eval(e) ? 1 : 0; }
-    catch { return "error"; }
+try{return eval(e)?1:0}catch{return 0}
 }
 
 // =====================
 // VARIABLES
 // =====================
-function getVars(expr) {
-    let s = new Set();
-    for (let c of expr) if (/[a-z]/i.test(c)) s.add(c);
-    return Array.from(s).sort();
+function vars(expr){
+return [...new Set(expr.match(/[a-z]/g))].sort();
 }
 
 // =====================
 // TABLA
 // =====================
-function tablaVerdad(expr) {
-    let vars = getVars(expr);
-    let filas = [];
-    let total = 2 ** vars.length;
+function tabla(expr){
+let v=vars(expr);
+let filas=[];
+let t=2**v.length;
 
-    for (let i=0;i<total;i++) {
-        let valores={}, fila=[];
-        for (let j=0;j<vars.length;j++) {
-            let val = (i >> (vars.length-j-1)) & 1;
-            valores[vars[j]] = val;
-            fila.push(val);
-        }
-        fila.push(evaluar(expr,valores));
-        filas.push(fila);
-    }
-    return {vars,filas};
+for(let i=0;i<t;i++){
+let val={},f=[];
+for(let j=0;j<v.length;j++){
+let x=(i>>(v.length-j-1))&1;
+val[v[j]]=x;
+f.push(x);
+}
+f.push(evalExpr(expr,val));
+filas.push(f);
+}
+return {v,filas};
 }
 
 // =====================
 // CLASIFICAR
 // =====================
-function clasificar(filas){
-    let r = filas.map(f=>f[f.length-1]);
-    if (r.every(v=>v===1)) return "Tautología";
-    if (r.every(v=>v===0)) return "Contradicción";
-    return "Contingencia";
+function tipo(f){
+let r=f.map(x=>x.at(-1));
+if(r.every(v=>v==1)) return "Tautología";
+if(r.every(v=>v==0)) return "Contradicción";
+return "Contingencia";
 }
 
 // =====================
-// FND
+// BADGE
 // =====================
-function generarFND(vars, filas){
-    let partes=[];
-    filas.forEach(f=>{
-        if(f[f.length-1]===1){
-            let t=[];
-            for(let i=0;i<vars.length;i++){
-                t.push(f[i]===1?vars[i]:"¬"+vars[i]);
-            }
-            partes.push("("+t.join(" ∧ ")+")");
-        }
-    });
-    return partes.join(" ∨ ")||"Contradicción";
+function pintarTipo(t){
+let b=document.getElementById("badge");
+b.className="badge";
+
+if(t=="Tautología") b.classList.add("tauto");
+if(t=="Contradicción") b.classList.add("contra");
+if(t=="Contingencia") b.classList.add("contin");
+
+b.innerText=t;
 }
 
 // =====================
-// FNC
+// FND / FNC
 // =====================
-function generarFNC(vars, filas){
-    let partes=[];
-    filas.forEach(f=>{
-        if(f[f.length-1]===0){
-            let t=[];
-            for(let i=0;i<vars.length;i++){
-                t.push(f[i]===1?"¬"+vars[i]:vars[i]);
-            }
-            partes.push("("+t.join(" ∨ ")+")");
-        }
-    });
-    return partes.join(" ∧ ")||"Tautología";
+function FND(v,f){
+return f.filter(x=>x.at(-1)==1).map(x=>
+"("+v.map((a,i)=>x[i]?a:"¬"+a).join(" ∧ ")+")"
+).join(" ∨ ")||"Contradicción";
+}
+
+function FNC(v,f){
+return f.filter(x=>x.at(-1)==0).map(x=>
+"("+v.map((a,i)=>x[i]?"¬"+a:a).join(" ∨ ")+")"
+).join(" ∧ ")||"Tautología";
 }
 
 // =====================
-// MOSTRAR
+// MOSTRAR TABLA
 // =====================
-function mostrarTabla(vars, filas){
-    let html="<table><tr>";
-    vars.forEach(v=>html+=`<th>${v}</th>`);
-    html+="<th>R</th></tr>";
+function mostrar(v,f){
+let h="<table><tr>";
+v.forEach(x=>h+="<th>"+x+"</th>");
+h+="<th>R</th></tr>";
 
-    filas.forEach(f=>{
-        html+="<tr>";
-        f.forEach(v=>html+=`<td>${v}</td>`);
-        html+="</tr>";
-    });
+f.forEach(r=>{
+h+="<tr>";
+r.forEach(x=>{
+let c=x?"true":"false";
+h+=`<td class="${c}">${x}</td>`;
+});
+h+="</tr>";
+});
 
-    html+="</table>";
-    document.getElementById("tabla").innerHTML=html;
+tabla.innerHTML=h;
 }
 
 // =====================
 // ANALIZAR
 // =====================
 function analizar(){
-    let expr=document.getElementById("formula").value;
-    let {vars,filas}=tablaVerdad(expr);
+let expr=formula.value;
+let {v,filas}=tabla(expr);
 
-    mostrarTabla(vars,filas);
+let t=tipo(filas);
+pintarTipo(t);
 
-    document.getElementById("resultado").innerText=
-        "Tipo: "+clasificar(filas);
+fnd.innerText="FND: "+FND(v,filas);
+fnc.innerText="FNC: "+FNC(v,filas);
 
-    document.getElementById("fnd").innerText=
-        "FND: "+generarFND(vars,filas);
-
-    document.getElementById("fnc").innerText=
-        "FNC: "+generarFNC(vars,filas);
+mostrar(v,filas);
 }
 
 // =====================
-// GENERAR
+// ENTRENAMIENTO REAL
 // =====================
-function generar(){
-    let tipo=document.getElementById("tipo").value;
-    let n=parseInt(document.getElementById("vars").value);
+let puntos=0;
+let actual="";
 
-    let vars=[];
-    for(let i=0;i<n;i++) vars.push(String.fromCharCode(112+i));
+function nuevoEjercicio(){
+let lista=[
+"(p ∨ ¬p)",
+"(p ∧ ¬p)",
+"(p → q)",
+"(p ∧ q)",
+"(p | q)"
+];
+actual=lista[Math.floor(Math.random()*lista.length)];
+ejercicio.innerText=actual;
+feedback.innerText="";
+}
 
-    let filas=[];
-    let total=2**n;
+function verificar(){
+let resp=respuesta.value;
+if(!resp) return;
 
-    for(let i=0;i<total;i++){
-        let fila=[];
-        for(let j=0;j<n;j++){
-            fila.push((i>>(n-j-1))&1);
-        }
+let {filas}=tabla(actual);
+let correcto=tipo(filas);
 
-        let r;
-        if(tipo==="Tautología") r=1;
-        else if(tipo==="Contradicción") r=0;
-        else r=i%2;
+if(resp===correcto){
+feedback.innerText="✔ Correcto";
+puntos++;
+}else{
+feedback.innerText="❌ Incorrecto (era "+correcto+")";
+}
 
-        fila.push(r);
-        filas.push(fila);
-    }
-
-    mostrarTabla(vars,filas);
-
-    document.getElementById("resultado").innerText=
-        "Tipo: "+tipo;
-
-    document.getElementById("fnd").innerText=
-        "FND: "+generarFND(vars,filas);
-
-    document.getElementById("fnc").innerText=
-        "FNC: "+generarFNC(vars,filas);
+document.getElementById("puntos").innerText=puntos;
 }
 
 </script>
